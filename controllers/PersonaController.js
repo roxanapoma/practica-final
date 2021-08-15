@@ -1,22 +1,6 @@
 const { app, constants } = require('../config');
-const { PersonaModel, GatoModel } = require('../models');
+const { PersonaModel } = require('../models');
 const axios = require('axios');
-
-const registrarPersona = async (req, res) => {
-  const datos = req.body;
-  const personaCreada = await PersonaModel.create(datos);
-  const gatoCreado = await GatoModel.create({
-    nombre: 'Manchas',
-    raza: 'Siames',
-    color: 'cafe'
-  });
-  console.log(gatoCreado);
-  res.status(201).json({
-    finalizado: true,
-    mensaje: 'Persona registrada correctamente.',
-    datos: personaCreada
-  });
-};
 
 const listarPersonas = async (req, res) => {
   const listaPersonas = await PersonaModel.find();
@@ -26,8 +10,65 @@ const listarPersonas = async (req, res) => {
   res.status(200).json({
     finalizado: true,
     mensaje: 'Personas listadas correctamente',
-    datos: []
+    datos: listaPersonas
   });
+};
+
+const registrarPersona = async (req, res) => {
+  const datos = req.body;
+  const personaCreada = await PersonaModel.create(datos);
+  console.log(personaCreada);
+  res.status(201).json({
+    finalizado: true,
+    mensaje: 'Persona registrada correctamente.',
+    datos: personaCreada
+  });
+};
+
+const modificarPersona = async (req, res) => {
+  const persona = {
+    nombres: req.body.nombres,
+    apellidoPaterno: req.body.apellidoPaterno,
+    apellidoMaterno: req.body.apellidoMaterno,
+    numeroDocumento: req.body.numeroDocumento
+  }
+  PersonaModel.findByIdAndUpdate(req.params.id, {$set:persona}, {new:true},(err, data) => {
+    if (!err) {
+      res.status(200).json({
+        finalizado: true,
+        mensaje: 'Persona modificada correctamente',
+        data: data
+      })
+    }else{
+      res.status(400).json({
+        finalizado: false,
+        mensaje: 'ERROR',
+        data: err
+      })
+    }
+  });
+ 
+};
+
+const eliminarPersona = async (req, res) => {
+ 
+  console.log('Ingresando a eliminar'+ req.params.id);
+  PersonaModel.findOneAndRemove(req.params.id, (err, data)=>{
+    if(!err){
+      res.status(200).json({
+        finalizado: true,
+        mensaje: 'Persona eliminada con exito',
+        datos: true
+      });
+    }else{
+      res.status(400).json({
+        finalizado: false,
+        mensaje: 'ERROR',
+        datos: err
+      })
+    }
+  });
+
 };
 
 const generarToken = (req, res) => {
@@ -59,5 +100,7 @@ module.exports = {
   listarPersonas,
   generarToken,
   registrarPersona,
+  modificarPersona,
+  eliminarPersona,
   consumirServicio
 };
